@@ -96,4 +96,5 @@ tmp*/
 
 data/
 train/
+model/
 *.iml
