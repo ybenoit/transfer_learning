@@ -97,6 +97,7 @@ from __future__ import print_function
 
 import argparse
 import sys
+import os
 from datetime import datetime
 
 import tensorflow as tf
@@ -124,10 +125,12 @@ def main(_):
     if not model_info:
         tf.logging.error('Did not recognize architecture flag')
         return -1
+    model_info["model_file_name"] = "classify_image_graph_def.pb"
 
     # Set up the pre-trained graph.
-    utils.maybe_download_and_extract(data_url=model_info['data_url'],
-                                     model_dir=FLAGS.model_dir)
+    # TODO : Handle first and second call
+    #utils.maybe_download_and_extract(data_url=model_info['data_url'],
+    #                                 model_dir=FLAGS.model_dir)
     graph, bottleneck_tensor, resized_image_tensor = (
         utils.create_model_graph(model_info=model_info,
                                  model_dir=FLAGS.model_dir))
@@ -263,7 +266,7 @@ def main(_):
                 utils.save_graph_to_file(sess=sess,
                                          graph=graph,
                                          graph_file_name=intermediate_file_name,
-                                         final_tensor_name=FLAGS.final_tensor_name)
+                                         final_tensor_name=FLAGS.all_final_tensors_names_list.split(","))
 
         # We've completed all our training, so run a final test evaluation on
         # some new images we haven't used before.
@@ -293,7 +296,7 @@ def main(_):
         utils.save_graph_to_file(sess=sess,
                                  graph=graph,
                                  graph_file_name=FLAGS.output_graph,
-                                 final_tensor_name=FLAGS.final_tensor_name)
+                                 final_tensor_name=FLAGS.all_final_tensors_names_list.split(","))
         with gfile.FastGFile(FLAGS.output_labels, 'w') as f:
             f.write('\n'.join(image_lists.keys()) + '\n')
 
@@ -430,6 +433,14 @@ if __name__ == '__main__':
         help="""\
       The name of the output classification layer in the retrained graph.\
       """
+    )
+    parser.add_argument(
+        '--all_final_tensors_names_list',
+        type=str,
+        default='final_result',
+        help="""\
+          The name of all the output classification layers in the retrained graph, comma separated.\
+          """
     )
     parser.add_argument(
         '--flip_left_right',
