@@ -125,13 +125,15 @@ def main(_):
     if not model_info:
         tf.logging.error('Did not recognize architecture flag')
         return -1
-    model_info["model_file_name"] = "output_graph_fruits_1.0_224.pb"
 
     # Set up the pre-trained graph.
-    # TODO : Handle first and second call
-    #utils.maybe_download_and_extract(data_url=model_info['data_url'],
-    #                                 model_dir=FLAGS.model_dir)
-    graph, bottleneck_tensor, resized_image_tensor = (
+    print(FLAGS.first_fit)
+    if not FLAGS.first_fit:
+        model_info["model_file_name"] = "output_graph_fruits_1.0_224_q.pb"
+    else:
+        utils.maybe_download_and_extract(data_url=model_info['data_url'],
+                                         model_dir=FLAGS.model_dir)
+    graph, bottleneck_tensor, resized_image_tensor, keep_prob = (
         utils.create_model_graph(model_info=model_info,
                                  model_dir=FLAGS.model_dir))
 
@@ -183,7 +185,8 @@ def main(_):
             final_tensor_name=FLAGS.final_tensor_name,
             bottleneck_tensor=bottleneck_tensor,
             bottleneck_tensor_size=model_info['bottleneck_tensor_size'],
-            learning_rate=FLAGS.learning_rate
+            learning_rate=FLAGS.learning_rate,
+            keep_prob=keep_prob
         )
 
         # Create the operations we need to evaluate the accuracy of our new layer.
@@ -224,7 +227,8 @@ def main(_):
             train_summary, _ = sess.run(
                 [merged, train_step],
                 feed_dict={bottleneck_input: train_bottlenecks,
-                           ground_truth_input: train_ground_truth})
+                           ground_truth_input: train_ground_truth,
+                           keep_prob: 0.7})
             train_writer.add_summary(train_summary, i)
 
             # Every so often, print out how well the graph is training.
@@ -233,7 +237,8 @@ def main(_):
                 train_accuracy, cross_entropy_value = sess.run(
                     [evaluation_step, cross_entropy],
                     feed_dict={bottleneck_input: train_bottlenecks,
-                               ground_truth_input: train_ground_truth})
+                               ground_truth_input: train_ground_truth,
+                               keep_prob: 1.0})
                 tf.logging.info('%s: Step %d: Train accuracy = %.1f%%' %
                                 (datetime.now(), i, train_accuracy * 100))
                 tf.logging.info('%s: Step %d: Cross entropy = %f' %
@@ -249,7 +254,8 @@ def main(_):
                 validation_summary, validation_accuracy = sess.run(
                     [merged, evaluation_step],
                     feed_dict={bottleneck_input: validation_bottlenecks,
-                               ground_truth_input: validation_ground_truth})
+                               ground_truth_input: validation_ground_truth,
+                               keep_prob: 1.0})
                 validation_writer.add_summary(validation_summary, i)
                 tf.logging.info('%s: Step %d: Validation accuracy = %.1f%% (N=%d)' %
                                 (datetime.now(), i, validation_accuracy * 100,
@@ -279,7 +285,8 @@ def main(_):
         test_accuracy, predictions = sess.run(
             [evaluation_step, prediction],
             feed_dict={bottleneck_input: test_bottlenecks,
-                       ground_truth_input: test_ground_truth})
+                       ground_truth_input: test_ground_truth,
+                       keep_prob: 1.0})
         tf.logging.info('Final test accuracy = %.1f%% (N=%d)' %
                         (test_accuracy * 100, len(test_bottlenecks)))
 
@@ -491,5 +498,13 @@ if __name__ == '__main__':
       takes 128x128 images. See https://research.googleblog.com/2017/06/mobilenets-open-source-models-for.html
       for more information on Mobilenet.\
       """)
+    parser.add_argument(
+        '--first_fit',
+        default=False,
+        help="""\
+      Whether to download model or used previously fitted one \
+      """,
+        action='store_true'
+    )
     FLAGS, unparsed = parser.parse_known_args()
     tf.app.run(main=main, argv=[sys.argv[0]] + unparsed)

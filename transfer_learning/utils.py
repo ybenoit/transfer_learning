@@ -186,7 +186,8 @@ def create_model_graph(model_info, model_dir):
                     model_info['bottleneck_tensor_name'],
                     model_info['resized_input_tensor_name'],
                 ]))
-    return graph, bottleneck_tensor, resized_input_tensor
+            keep_prob = tf.placeholder(dtype=tf.float32, name="keep_prob")
+    return graph, bottleneck_tensor, resized_input_tensor, keep_prob
 
 
 def run_bottleneck_on_image(sess, image_data, image_data_tensor,
@@ -634,7 +635,7 @@ def variable_summaries(var):
 
 
 def add_final_training_ops(class_count, final_tensor_name, bottleneck_tensor,
-                           bottleneck_tensor_size, learning_rate):
+                           bottleneck_tensor_size, learning_rate, keep_prob):
     """Adds a new softmax and fully-connected layer for training.
 
     We need to retrain the top layer to identify our new classes, so this function
@@ -669,19 +670,39 @@ def add_final_training_ops(class_count, final_tensor_name, bottleneck_tensor,
     # to see in TensorBoard
     layer_name = 'final_training_ops'
     with tf.name_scope(layer_name):
-        with tf.name_scope('weights'):
-            initial_value = tf.truncated_normal(
-                [bottleneck_tensor_size, class_count], stddev=0.001)
 
-            layer_weights = tf.Variable(initial_value, name='final_weights')
+        with tf.name_scope("hidden"):
+            with tf.name_scope('weights'):
+                initial_value = tf.truncated_normal(
+                    [bottleneck_tensor_size, 100], stddev=0.001)
 
-            variable_summaries(layer_weights)
-        with tf.name_scope('biases'):
-            layer_biases = tf.Variable(tf.zeros([class_count]), name='final_biases')
-            variable_summaries(layer_biases)
-        with tf.name_scope('Wx_plus_b'):
-            logits = tf.matmul(bottleneck_input, layer_weights) + layer_biases
-            tf.summary.histogram('pre_activations', logits)
+                layer_weights = tf.Variable(initial_value, name='final_weights')
+
+                variable_summaries(layer_weights)
+            with tf.name_scope('biases'):
+                layer_biases = tf.Variable(tf.zeros([100]), name='final_biases')
+                variable_summaries(layer_biases)
+            with tf.name_scope('Wx_plus_b'):
+                hidden = tf.matmul(bottleneck_input, layer_weights) + layer_biases
+                tf.summary.histogram('pre_activations', hidden)
+                relu = tf.nn.relu(hidden)
+            with tf.name_scope("dropout"):
+                dropout = tf.nn.dropout(relu, keep_prob=keep_prob)
+
+        with tf.name_scope("final"):
+            with tf.name_scope('weights'):
+                initial_value = tf.truncated_normal(
+                    [100, class_count], stddev=0.001)
+
+                layer_weights = tf.Variable(initial_value, name='final_weights')
+
+                variable_summaries(layer_weights)
+            with tf.name_scope('biases'):
+                layer_biases = tf.Variable(tf.zeros([class_count]), name='final_biases')
+                variable_summaries(layer_biases)
+            with tf.name_scope('Wx_plus_b'):
+                logits = tf.matmul(dropout, layer_weights) + layer_biases
+                tf.summary.histogram('pre_activations', logits)
 
     final_tensor = tf.nn.softmax(logits, name=final_tensor_name)
     tf.summary.histogram('activations', final_tensor)

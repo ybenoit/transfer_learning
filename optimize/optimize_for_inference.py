@@ -16,7 +16,7 @@ def main(_):
 
     output_graph_def = optimize_for_inference(
             input_graph_def,
-            ["Mul"], # an array of the input node(s)
+            ["input"], # an array of the input node(s)
             # ["final_result"], # an array of output nodes
             FLAGS.all_final_tensors_names_list.split(","),  # an array of output nodes
             tf.float32.as_datatype_enum)
