@@ -125,7 +125,7 @@ def main(_):
     if not model_info:
         tf.logging.error('Did not recognize architecture flag')
         return -1
-    model_info["model_file_name"] = "classify_image_graph_def.pb"
+    model_info["model_file_name"] = "output_graph_fruits_1.0_224.pb"
 
     # Set up the pre-trained graph.
     # TODO : Handle first and second call
