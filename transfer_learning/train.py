@@ -125,12 +125,13 @@ def main(_):
     if not model_info:
         tf.logging.error('Did not recognize architecture flag')
         return -1
-    model_info["model_file_name"] = "output_graph_fruits_1.0_224.pb"
 
     # Set up the pre-trained graph.
-    # TODO : Handle first and second call
-    #utils.maybe_download_and_extract(data_url=model_info['data_url'],
-    #                                 model_dir=FLAGS.model_dir)
+    if not FLAGS.first_fit:
+        model_info["model_file_name"] = "output_graph_fruits_simple_1.0_224_q.pb"
+    else:
+        utils.maybe_download_and_extract(data_url=model_info['data_url'],
+                                         model_dir=FLAGS.model_dir)
     graph, bottleneck_tensor, resized_image_tensor = (
         utils.create_model_graph(model_info=model_info,
                                  model_dir=FLAGS.model_dir))
@@ -491,5 +492,13 @@ if __name__ == '__main__':
       takes 128x128 images. See https://research.googleblog.com/2017/06/mobilenets-open-source-models-for.html
       for more information on Mobilenet.\
       """)
+    parser.add_argument(
+        '--first_fit',
+        default=False,
+        help="""\
+      Whether to download model or used previously fitted one \
+      """,
+        action='store_true'
+    )
     FLAGS, unparsed = parser.parse_known_args()
     tf.app.run(main=main, argv=[sys.argv[0]] + unparsed)
