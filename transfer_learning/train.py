@@ -22,7 +22,7 @@ ImageNet images, and train a new top layer that can recognize other classes of
 images.
 
 The top layer receives as input a 2048-dimensional vector (1001-dimensional for
-Mobilenet) for each image. We train a softmax layer on top of this
+Mobilenet) for each images. We train a softmax layer on top of this
 representation. Assuming the softmax layer contains N labels, this corresponds
 to learning N + 2048*N (or 1001*N)  model parameters corresponding to the
 learned biases and weights.
@@ -39,7 +39,7 @@ should have a structure like this:
 ~/flower_photos/sunflower/somepicture.jpg
 
 The subfolder names are important, since they define what label is applied to
-each image, but the filenames themselves don't matter. Once your images are
+each images, but the filenames themselves don't matter. Once your images are
 prepared, you can run the training with a command like this:
 
 
@@ -58,7 +58,7 @@ python tensorflow/examples/image_retraining/retrain.py \
 ```
 
 You can replace the image_dir argument with any folder containing subfolders of
-images. The label for each image is taken from the name of the subfolder it's
+images. The label for each images is taken from the name of the subfolder it's
 in.
 
 This produces a new model file that can be loaded and run by any TensorFlow
@@ -77,7 +77,7 @@ python tensorflow/examples/image_retraining/retrain.py \
 
 There are 32 different Mobilenet models to choose from, with a variety of file
 size and latency options. The first number can be '1.0', '0.75', '0.50', or
-'0.25' to control the size, and the second controls the input image size, either
+'0.25' to control the size, and the second controls the input images size, either
 '224', '192', '160', or '128', with smaller sizes running faster. See
 https://research.googleblog.com/2017/06/mobilenets-open-source-models-for.html
 for more information on Mobilenet.
@@ -129,7 +129,7 @@ def main(_):
     # Set up the pre-trained graph.
     print(FLAGS.first_fit)
     if not FLAGS.first_fit:
-        model_info["model_file_name"] = "output_graph_fruits_1.0_224_q.pb"
+        model_info["model_file_name"] = "output_graph_fruits_0.50_224.pb"
     else:
         utils.maybe_download_and_extract(data_url=model_info['data_url'],
                                          model_dir=FLAGS.model_dir)
@@ -156,7 +156,7 @@ def main(_):
         FLAGS.random_brightness)
 
     with tf.Session(graph=graph) as sess:
-        # Set up the image decoding sub-graph.
+        # Set up the images decoding sub-graph.
         jpeg_data_tensor, decoded_image_tensor = utils.add_jpeg_decoding(
             model_info['input_width'], model_info['input_height'],
             model_info['input_depth'], model_info['input_mean'],
@@ -171,7 +171,7 @@ def main(_):
                 model_info['input_height'], model_info['input_depth'],
                 model_info['input_mean'], model_info['input_std'])
         else:
-            # We'll make sure we've calculated the 'bottleneck' image summaries and
+            # We'll make sure we've calculated the 'bottleneck' images summaries and
             # cached them on disk.
             utils.cache_bottlenecks(sess, image_lists, FLAGS.image_dir,
                                     FLAGS.bottleneck_dir, jpeg_data_tensor,
@@ -480,7 +480,7 @@ if __name__ == '__main__':
         type=int,
         default=0,
         help="""\
-      A percentage determining how much to randomly multiply the training image
+      A percentage determining how much to randomly multiply the training images
       input pixels up or down by.\
       """
     )

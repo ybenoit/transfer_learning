@@ -28,7 +28,7 @@ MAX_NUM_IMAGES_PER_CLASS = 2 ** 27 - 1  # ~134M
 def create_image_lists(image_dir, testing_percentage, validation_percentage):
     """Builds a list of training images from the file system.
 
-    Analyzes the sub folders in the image directory, splits them into stable
+    Analyzes the sub folders in the images directory, splits them into stable
     training, testing, and validation sets, and returns a data structure
     describing the lists of images for each label and their paths.
 
@@ -78,7 +78,7 @@ def create_image_lists(image_dir, testing_percentage, validation_percentage):
         for file_name in file_list:
             base_name = os.path.basename(file_name)
             # We want to ignore anything after '_nohash_' in the file name when
-            # deciding which set to put an image in, the data set creator has a way of
+            # deciding which set to put an images in, the data set creator has a way of
             # grouping photos that are close variations of each other. For example
             # this is used in the plant disease data set to group multiple pictures of
             # the same leaf.
@@ -110,12 +110,12 @@ def create_image_lists(image_dir, testing_percentage, validation_percentage):
 
 
 def get_image_path(image_lists, label_name, index, image_dir, category):
-    """"Returns a path to an image for a label at the given index.
+    """"Returns a path to an images for a label at the given index.
 
     Args:
       image_lists: Dictionary of training images for each label.
-      label_name: Label string we want to get an image for.
-      index: Int offset of the image we want. This will be moduloed by the
+      label_name: Label string we want to get an images for.
+      index: Int offset of the images we want. This will be moduloed by the
       available number of images for the label, so it can be arbitrarily large.
       image_dir: Root folder string of the subfolders containing the training
       images.
@@ -123,7 +123,7 @@ def get_image_path(image_lists, label_name, index, image_dir, category):
       validation.
 
     Returns:
-      File system path string to an image that meets the requested parameters.
+      File system path string to an images that meets the requested parameters.
 
     """
     if label_name not in image_lists:
@@ -148,8 +148,8 @@ def get_bottleneck_path(image_lists, label_name, index, bottleneck_dir,
 
     Args:
       image_lists: Dictionary of training images for each label.
-      label_name: Label string we want to get an image for.
-      index: Integer offset of the image we want. This will be moduloed by the
+      label_name: Label string we want to get an images for.
+      index: Integer offset of the images we want. This will be moduloed by the
       available number of images for the label, so it can be arbitrarily large.
       bottleneck_dir: Folder string holding cached files of bottleneck values.
       category: Name string of set to pull images from - training, testing, or
@@ -157,7 +157,7 @@ def get_bottleneck_path(image_lists, label_name, index, bottleneck_dir,
       architecture: The name of the model architecture.
 
     Returns:
-      File system path string to an image that meets the requested parameters.
+      File system path string to an images that meets the requested parameters.
     """
     return get_image_path(image_lists, label_name, index, bottleneck_dir,
                           category) + '_' + architecture + '.txt'
@@ -193,20 +193,20 @@ def create_model_graph(model_info, model_dir):
 def run_bottleneck_on_image(sess, image_data, image_data_tensor,
                             decoded_image_tensor, resized_input_tensor,
                             bottleneck_tensor):
-    """Runs inference on an image to extract the 'bottleneck' summary layer.
+    """Runs inference on an images to extract the 'bottleneck' summary layer.
 
     Args:
       sess: Current active TensorFlow Session.
       image_data: String of raw JPEG data.
       image_data_tensor: Input data layer in the graph.
-      decoded_image_tensor: Output of initial image resizing and preprocessing.
+      decoded_image_tensor: Output of initial images resizing and preprocessing.
       resized_input_tensor: The input node of the recognition graph.
       bottleneck_tensor: Layer before the final softmax.
 
     Returns:
       Numpy array of bottleneck values.
     """
-    # First decode the JPEG image, resize it, and rescale the pixel values.
+    # First decode the JPEG images, resize it, and rescale the pixel values.
     resized_input_values = sess.run(decoded_image_tensor,
                                     {image_data_tensor: image_data})
     # Then run it through the recognition network.
@@ -282,7 +282,7 @@ def get_or_create_bottleneck(sess, image_lists, label_name, index, image_dir,
                              category, bottleneck_dir, jpeg_data_tensor,
                              decoded_image_tensor, resized_input_tensor,
                              bottleneck_tensor, architecture):
-    """Retrieves or calculates bottleneck values for an image.
+    """Retrieves or calculates bottleneck values for an images.
 
     If a cached version of the bottleneck data exists on-disk, return that,
     otherwise calculate the data and save it to disk for future use.
@@ -290,8 +290,8 @@ def get_or_create_bottleneck(sess, image_lists, label_name, index, image_dir,
     Args:
       sess: The current active TensorFlow Session.
       image_lists: Dictionary of training images for each label.
-      label_name: Label string we want to get an image for.
-      index: Integer offset of the image we want. This will be modulo-ed by the
+      label_name: Label string we want to get an images for.
+      index: Integer offset of the images we want. This will be modulo-ed by the
       available number of images for the label, so it can be arbitrarily large.
       image_dir: Root folder string of the subfolders containing the training
       images.
@@ -299,13 +299,13 @@ def get_or_create_bottleneck(sess, image_lists, label_name, index, image_dir,
       or validation.
       bottleneck_dir: Folder string holding cached files of bottleneck values.
       jpeg_data_tensor: The tensor to feed loaded jpeg data into.
-      decoded_image_tensor: The output of decoding and resizing the image.
+      decoded_image_tensor: The output of decoding and resizing the images.
       resized_input_tensor: The input node of the recognition graph.
       bottleneck_tensor: The output tensor for the bottleneck values.
       architecture: The name of the model architecture.
 
     Returns:
-      Numpy array of values produced by the bottleneck layer for the image.
+      Numpy array of values produced by the bottleneck layer for the images.
     """
     label_lists = image_lists[label_name]
     sub_dir = label_lists['dir']
@@ -344,9 +344,9 @@ def cache_bottlenecks(sess, image_lists, image_dir, bottleneck_dir,
                       resized_input_tensor, bottleneck_tensor, architecture):
     """Ensures all the training, testing, and validation bottlenecks are cached.
 
-    Because we're likely to read the same image multiple times (if there are no
+    Because we're likely to read the same images multiple times (if there are no
     distortions applied during training) it can speed things up a lot if we
-    calculate the bottleneck layer values once for each image during
+    calculate the bottleneck layer values once for each images during
     preprocessing, and then just read those cached values repeatedly during
     training. Here we go through all the images we've found, calculate those
     values, and save them off.
@@ -358,7 +358,7 @@ def cache_bottlenecks(sess, image_lists, image_dir, bottleneck_dir,
       images.
       bottleneck_dir: Folder string holding cached files of bottleneck values.
       jpeg_data_tensor: Input tensor for jpeg data from file.
-      decoded_image_tensor: The output of decoding and resizing the image.
+      decoded_image_tensor: The output of decoding and resizing the images.
       resized_input_tensor: The input node of the recognition graph.
       bottleneck_tensor: The penultimate output layer of the graph.
       architecture: The name of the model architecture.
@@ -403,8 +403,8 @@ def get_random_cached_bottlenecks(sess, image_lists, how_many, category,
       bottleneck_dir: Folder string holding cached files of bottleneck values.
       image_dir: Root folder string of the subfolders containing the training
       images.
-      jpeg_data_tensor: The layer to feed jpeg image data into.
-      decoded_image_tensor: The output of decoding and resizing the image.
+      jpeg_data_tensor: The layer to feed jpeg images data into.
+      decoded_image_tensor: The output of decoding and resizing the images.
       resized_input_tensor: The input node of the recognition graph.
       bottleneck_tensor: The bottleneck output layer of the CNN graph.
       architecture: The name of the model architecture.
@@ -459,7 +459,7 @@ def get_random_distorted_bottlenecks(
     """Retrieves bottleneck values for training images, after distortions.
 
     If we're training with distortions like crops, scales, or flips, we have to
-    recalculate the full model for every image, and so we can't use cached
+    recalculate the full model for every images, and so we can't use cached
     bottleneck values. Instead we find random images for the requested category,
     run them through the distortion graph, and then the full graph to get the
     bottleneck results for each.
@@ -472,7 +472,7 @@ def get_random_distorted_bottlenecks(
       or validation.
       image_dir: Root folder string of the subfolders containing the training
       images.
-      input_jpeg_tensor: The input layer we feed the image data to.
+      input_jpeg_tensor: The input layer we feed the images data to.
       distorted_image: The output node of the distortion graph.
       resized_input_tensor: The input node of the recognition graph.
       bottleneck_tensor: The bottleneck output layer of the CNN graph.
@@ -493,7 +493,7 @@ def get_random_distorted_bottlenecks(
             tf.logging.fatal('File does not exist %s', image_path)
         jpeg_data = gfile.FastGFile(image_path, 'rb').read()
         # Note that we materialize the distorted_image_data as a numpy array before
-        # sending running inference on the image. This involves 2 memory copies and
+        # sending running inference on the images. This involves 2 memory copies and
         # might be optimized in other implementations.
         distorted_image_data = sess.run(distorted_image,
                                         {input_jpeg_tensor: jpeg_data})
@@ -534,14 +534,14 @@ def add_input_distortions(flip_left_right, random_crop, random_scale,
     through simple distortions like crops, scales, and flips. These reflect the
     kind of variations we expect in the real world, and so can help train the
     model to cope with natural data more effectively. Here we take the supplied
-    parameters and construct a network of operations to apply them to an image.
+    parameters and construct a network of operations to apply them to an images.
 
     Cropping
     ~~~~~~~~
 
     Cropping is done by placing a bounding box at a random position in the full
-    image. The cropping parameter controls the size of that box relative to the
-    input image. If it's zero, then the box is the same size as the input and no
+    images. The cropping parameter controls the size of that box relative to the
+    input images. If it's zero, then the box is the same size as the input and no
     cropping is performed. If the value is 50%, then the crop box will be half the
     width and height of the input. In a diagram it looks like this:
 
@@ -575,10 +575,10 @@ def add_input_distortions(flip_left_right, random_crop, random_scale,
       random_scale: Integer percentage of how much to vary the scale by.
       random_brightness: Integer range to randomly multiply the pixel values by.
       graph.
-      input_width: Horizontal size of expected input image to model.
-      input_height: Vertical size of expected input image to model.
-      input_depth: How many channels the expected input image should have.
-      input_mean: Pixel value that should be zero in the image for the graph.
+      input_width: Horizontal size of expected input images to model.
+      input_height: Vertical size of expected input images to model.
+      input_depth: How many channels the expected input images should have.
+      input_mean: Pixel value that should be zero in the images for the graph.
       input_std: How much to divide the pixel values by before recognition.
 
     Returns:
@@ -765,7 +765,7 @@ def prepare_file_system(summaries_dir, intermediate_store_frequency, intermediat
 def create_model_info(architecture):
     """Given the name of a model architecture, returns information about it.
 
-    There are different base image recognition pretrained models that can be
+    There are different base images recognition pretrained models that can be
     retrained using transfer learning, and this function translates from the name
     of a model to the attributes that are needed to download and train with it.
 
@@ -782,7 +782,7 @@ def create_model_info(architecture):
     architecture = architecture.lower()
     if architecture == 'inception_v3':
         # pylint: disable=line-too-long
-        data_url = 'http://download.tensorflow.org/models/image/imagenet/inception-2015-12-05.tgz'
+        data_url = 'http://download.tensorflow.org/models/images/imagenet/inception-2015-12-05.tgz'
         # pylint: enable=line-too-long
         bottleneck_tensor_name = 'pool_3/_reshape:0'
         bottleneck_tensor_size = 2048
@@ -863,10 +863,10 @@ def add_jpeg_decoding(input_width, input_height, input_depth, input_mean,
     """Adds operations that perform JPEG decoding and resizing to the graph..
 
     Args:
-      input_width: Desired width of the image fed into the recognizer graph.
-      input_height: Desired width of the image fed into the recognizer graph.
-      input_depth: Desired channels of the image fed into the recognizer graph.
-      input_mean: Pixel value that should be zero in the image for the graph.
+      input_width: Desired width of the images fed into the recognizer graph.
+      input_height: Desired width of the images fed into the recognizer graph.
+      input_depth: Desired channels of the images fed into the recognizer graph.
+      input_mean: Pixel value that should be zero in the images for the graph.
       input_std: How much to divide the pixel values by before recognition.
 
     Returns:
